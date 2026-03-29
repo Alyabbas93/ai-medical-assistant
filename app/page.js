@@ -7,6 +7,7 @@ import StatCard from '@/components/dashboard/StatCard';
 import AnimatedCard from '@/components/AnimatedCard';
 import AnimatedButton from '@/components/AnimatedButton';
 import { useApp } from '@/app/context/AppContext';
+import { useAuth } from '@/app/context/AuthContext';
 import { patientsAPI, callsAPI } from '@/app/services/api';
 import Link from 'next/link';
 
@@ -32,10 +33,13 @@ const itemVariants = {
 
 export default function Dashboard() {
   const { patients, setPatients, calls, setCalls, setLoading, showSnackbar } = useApp();
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (user && !authLoading) {
+      fetchData();
+    }
+  }, [user, authLoading]);
 
   const fetchData = async () => {
     try {
@@ -56,39 +60,43 @@ export default function Dashboard() {
     }
   };
 
+  const successRate = calls.length > 0 
+    ? Math.round((calls.filter(c => c.status === 'completed').length / calls.length) * 100) 
+    : 0;
+
   const stats = [
     {
       icon: Users,
       label: 'Total Patients',
       value: patients.length,
-      trend: '+12%',
+      trend: patients.length > 0 ? '+1' : '0%',
       glowColor: 'glow-indigo',
     },
     {
       icon: Phone,
       label: 'Total Calls',
       value: calls.length,
-      trend: '+8%',
+      trend: calls.length > 0 ? '+1' : '0%',
       glowColor: 'glow-purple',
     },
     {
       icon: CheckCircle2,
       label: 'Completed',
       value: calls.filter((c) => c.status === 'completed').length,
-      trend: '+15%',
+      trend: calls.length > 0 ? '+1' : '0%',
       glowColor: 'glow-cyan',
     },
     {
       icon: Clock,
       label: 'Avg Duration',
       value: calls.length > 0 ? Math.round(calls.reduce((acc, c) => acc + c.duration, 0) / calls.length) : 0,
-      trend: '+3%',
+      trend: '0%',
       glowColor: 'glow-indigo',
     },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-dark dark:bg-gradient-dark p-6 md:p-8">
+    <div className="min-h-screen bg-gradient-light dark:bg-gradient-dark p-6 md:p-8">
       <motion.div
         variants={containerVariants}
         initial="hidden"
@@ -97,7 +105,9 @@ export default function Dashboard() {
       >
         {/* Header */}
         <motion.div variants={itemVariants} className="mb-8">
-          <h1 className="text-4xl font-bold gradient-text mb-2">Welcome Back</h1>
+          <h1 className="text-4xl font-bold gradient-text mb-2">
+            Welcome Back, {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User'}
+          </h1>
           <p className="text-muted-foreground">Monitor your medical voice calls in real-time</p>
         </motion.div>
 
@@ -136,7 +146,7 @@ export default function Dashboard() {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.1 }}
                       whileHover={{ x: 4 }}
-                      className="p-4 rounded-lg bg-muted/30 border border-white/5 hover:border-primary/30 transition-all"
+                      className="p-4 rounded-lg bg-muted/30 border border-border hover:border-primary/30 transition-all"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
@@ -182,7 +192,7 @@ export default function Dashboard() {
               </div>
 
               {/* Activity Stats */}
-              <div className="mt-8 pt-6 border-t border-white/10">
+              <div className="mt-8 pt-6 border-t border-border">
                 <h3 className="text-sm font-semibold mb-4">Activity This Week</h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
@@ -195,7 +205,7 @@ export default function Dashboard() {
                   </div>
                   <div className="flex items-center justify-between">
                     <p className="text-sm text-muted-foreground">Success Rate</p>
-                    <p className="font-bold text-green-500">98%</p>
+                    <p className={`font-bold ${successRate > 0 ? 'text-green-500' : 'text-muted-foreground'}`}>{successRate}%</p>
                   </div>
                 </div>
               </div>

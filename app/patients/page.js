@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Search } from 'lucide-react';
 import AnimatedCard from '@/components/AnimatedCard';
@@ -8,6 +8,7 @@ import AnimatedButton from '@/components/AnimatedButton';
 import PatientForm from '@/components/patients/PatientForm';
 import PatientTable from '@/components/patients/PatientTable';
 import { useApp } from '@/app/context/AppContext';
+import { useAuth } from '@/app/context/AuthContext';
 import { patientsAPI, callsAPI } from '@/app/services/api';
 
 const containerVariants = {
@@ -31,9 +32,28 @@ const itemVariants = {
 };
 
 export default function PatientsPage() {
-  const { patients, setPatients, showSnackbar } = useApp();
+  const { patients, setPatients, showSnackbar, setLoading } = useApp();
+  const { user, loading: authLoading } = useAuth();
   const [formOpen, setFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    if (user && !authLoading && patients.length === 0) {
+      fetchPatients();
+    }
+  }, [user, authLoading]);
+
+  const fetchPatients = async () => {
+    try {
+      setLoading(true);
+      const res = await patientsAPI.getAll();
+      setPatients(res.data || []);
+    } catch (err) {
+      console.error('Failed to fetch patients:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredPatients = patients.filter((patient) =>
     patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -42,8 +62,14 @@ export default function PatientsPage() {
   );
 
   const handleAddPatient = async (formData) => {
-    const res = await patientsAPI.create(formData);
-    setPatients((prev) => [res.data, ...prev]);
+    try {
+      const res = await patientsAPI.create(formData);
+      setPatients((prev) => [res.data, ...prev]);
+    } catch (err) {
+      const errorMsg = err.response?.data?.details || err.response?.data?.error || 'Failed to add patient';
+      showSnackbar(errorMsg, 'error');
+      throw err; // Re-throw for the Form component's catch block
+    }
   };
 
   const handleStartCall = async (patient) => {
@@ -68,7 +94,7 @@ export default function PatientsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-dark dark:bg-gradient-dark p-6 md:p-8">
+    <div className="min-h-screen bg-gradient-light dark:bg-gradient-dark p-6 md:p-8">
       <motion.div
         variants={containerVariants}
         initial="hidden"
@@ -104,7 +130,7 @@ export default function PatientsPage() {
               placeholder="Search by name, phone, or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 rounded-lg bg-card border border-white/10 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-300"
+              className="w-full pl-12 pr-4 py-3 rounded-lg bg-card border border-border text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-300 shadow-sm"
             />
           </div>
         </motion.div>

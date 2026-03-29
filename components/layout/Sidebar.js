@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { LayoutDashboard, Users, Phone, X } from 'lucide-react';
+import { LayoutDashboard, Users, Phone, X, LogOut } from 'lucide-react';
 import { useApp } from '@/app/context/AppContext';
+import { useAuth } from '@/app/context/AuthContext';
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -15,6 +16,7 @@ const navItems = [
 export default function Sidebar() {
   const pathname = usePathname();
   const { sidebarOpen, setSidebarOpen } = useApp();
+  const { signOut, user } = useAuth();
 
   const sidebarVariants = {
     open: { x: 0, opacity: 1 },
@@ -40,7 +42,7 @@ export default function Sidebar() {
         initial={sidebarOpen ? 'open' : 'closed'}
         animate={sidebarOpen ? 'open' : 'closed'}
         transition={{ duration: 0.3, type: 'tween' }}
-        className="fixed left-0 top-0 h-screen w-64 bg-card border-r border-white/10 z-40 flex flex-col pt-20 md:relative md:translate-x-0 md:z-10 md:pt-0"
+        className="fixed left-0 top-0 h-screen w-64 bg-card border-r border-border z-40 flex flex-col pt-20 md:relative md:translate-x-0 md:z-10 md:pt-0"
       >
         <button
           onClick={() => setSidebarOpen(false)}
@@ -81,7 +83,18 @@ export default function Sidebar() {
         </nav>
 
         {/* Sidebar Footer */}
-        <div className="px-4 py-6 border-t border-white/10">
+        <div className="px-4 py-6 border-t border-border space-y-4">
+          {user && (
+            <motion.button
+              whileHover={{ x: 4 }}
+              onClick={signOut}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:bg-red-400/10 transition-all duration-300"
+            >
+              <LogOut className="w-5 h-5" />
+              <span className="font-medium text-sm">Sign Out</span>
+            </motion.button>
+          )}
+
           <motion.div
             whileHover={{ scale: 1.02 }}
             className="p-4 rounded-lg bg-gradient-to-r from-indigo-600/20 to-purple-600/20 border border-indigo-500/30 text-center"

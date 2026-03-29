@@ -13,7 +13,7 @@ export default function Header() {
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="sticky top-0 z-40 bg-card/80 backdrop-blur-md border-b border-white/10"
+      className="sticky top-0 z-40 bg-card/80 backdrop-blur-md border-b border-border"
     >
       <div className="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto">
         <div className="flex items-center gap-4">

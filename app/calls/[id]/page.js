@@ -94,7 +94,7 @@ export default function CallDetailsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-dark dark:bg-gradient-dark p-6 md:p-8">
+    <div className="min-h-screen bg-gradient-light dark:bg-gradient-dark p-6 md:p-8">
       <motion.div
         variants={containerVariants}
         initial="hidden"

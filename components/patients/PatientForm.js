@@ -48,11 +48,14 @@ export default function PatientForm({ open, onClose, onSubmit }) {
 
     try {
       setLoading(true);
+      console.log("Submitting New Patient Form:", formData);
       const newPatient = {
-        id: Date.now(),
-        ...formData,
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email,
+        dateOfBirth: formData.dateOfBirth,
+        notes: formData.notes,
         status: 'pending',
-        lastCall: null,
       };
 
       await onSubmit(newPatient);
